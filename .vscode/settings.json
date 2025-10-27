@@ -1,0 +1,24 @@
+{
+    "files.encoding": "shiftjis",
+    "workbench.editor.showTabs": "multiple",
+    "coboleditor.format_constants_to_uppercase": true,
+    "coboleditor.intellisense_style": "uppercase",
+    "coboleditor.copybookexts": [
+        "cpy",
+        "CPY",
+        "cbl",
+        "CBL",
+        "inc",
+        "INC",
+        "COB",
+        "cob"
+    ],
+    "coboleditor.copybookdirs": [
+        "$COBCPY",
+        "$COPYPATH",
+        "copylib"
+    ],
+    "editor.fontFamily": "MS Gothic",
+    "editor.fontSize": 16,
+    "terminal.integrated.fontSize": 16
+}
