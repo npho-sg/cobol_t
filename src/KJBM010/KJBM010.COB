@@ -87,15 +87,15 @@
       * ファイルのオープン                                
            OPEN INPUT ITF-FILE.
            IF WK-INFILE-STATUS NOT = "00"
-                DISPLAY "ITF-FILEオープンに失敗しました"
-                MOVE WK-INFILE-STATUS TO WK-ERROR-FLG
-                PERFORM TERM-RTN
+             DISPLAY "ITF-FILEオープンに失敗しました"
+             MOVE WK-INFILE-STATUS TO WK-ERROR-FLG
+             PERFORM TERM-RTN
            END-IF.
            OPEN OUTPUT OTF-FILE.
            IF WK-OUTFILE-STATUS NOT = "00"
-                DISPLAY "OTF-FILEオープンに失敗しました"
-                MOVE WK-OUTFILE-STATUS TO WK-ERROR-FLG
-                PERFORM TERM-RTN
+             DISPLAY "OTF-FILEオープンに失敗しました"
+             MOVE WK-OUTFILE-STATUS TO WK-ERROR-FLG
+             PERFORM TERM-RTN
            END-IF.
       * 入力データ読み込み
            PERFORM ITFFILE-READ-RTN.
@@ -108,19 +108,19 @@
        TERM-RTN                    SECTION.
 
       * ファイルのクローズ
-              CLOSE ITF-FILE.
-              CLOSE OTF-FILE.
+           CLOSE ITF-FILE.
+           CLOSE OTF-FILE.
 
            IF WK-ERROR-FLG = "00" THEN
-      *    入出力件数の表示
-                MOVE WK-IN-CNT          TO WK-MSG2-CNT
-                MOVE WK-OUT-CNT         TO WK-MSG3-CNT
+      *      入出力件数の表示
+             MOVE WK-IN-CNT        TO WK-MSG2-CNT
+             MOVE WK-OUT-CNT       TO WK-MSG3-CNT
 
-                DISPLAY WK-MESSAGE-AREA2
-                DISPLAY WK-MESSAGE-AREA3
-                DISPLAY WK-MESSAGE-AREA4
+             DISPLAY WK-MESSAGE-AREA2
+             DISPLAY WK-MESSAGE-AREA3
+             DISPLAY WK-MESSAGE-AREA4
            ELSE
-                DISPLAY WK-MESSAGE-AREA5
+             DISPLAY WK-MESSAGE-AREA5
            END-IF.
        EXT.
            EXIT.
@@ -157,9 +157,9 @@
       * 出力ファイルへ書き込む
            WRITE OTF-REC.
            IF WK-OUTFILE-STATUS NOT = "00"
-                DISPLAY "OTF-FILE書き込みに失敗しました"
-                MOVE WK-OUTFILE-STATUS TO WK-ERROR-FLG
-                PERFORM TERM-RTN
+             DISPLAY "OTF-FILE書き込みに失敗しました"
+             MOVE WK-OUTFILE-STATUS TO WK-ERROR-FLG
+             PERFORM TERM-RTN
            END-IF.
       * 書き込み件数カウント
            ADD 1                   TO WK-OUT-CNT.
@@ -172,8 +172,8 @@
        ITFFILE-READ-RTN            SECTION.
 
            READ ITF-FILE
-             AT END MOVE "Y"       TO ITF-END-FLG
-             NOT AT END ADD 1      TO WK-IN-CNT
+           AT END MOVE "Y"         TO ITF-END-FLG
+           NOT AT END ADD 1        TO WK-IN-CNT
            END-READ.
 
        EXT.
