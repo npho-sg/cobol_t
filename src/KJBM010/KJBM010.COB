@@ -39,13 +39,12 @@
            03 ITF-END-FLG         PIC X(001).
            03 WK-IN-CNT           PIC 9(006).
            03 WK-OUT-CNT          PIC 9(006).
-       01 WK-MSG-ADD              PIC X(150).
-       01 WK-LF                   PIC X
+       01  WK-MSG-ADD             PIC X(150).
+       01  WK-LF                  PIC X
                                   VALUE X'0A'.
-       
        01  WK-MESSAGE-AREA.
-           03 FILLER               PIC X(021)
-                                 VALUE "*** KJBM010 START ***".
+           03 FILLER              PIC X(021)
+                                VALUE "*** KJBM010 START ***".
        
        01  WK-MESSAGE-AREA2.
            03 FILLER               PIC X(021)
@@ -64,7 +63,7 @@
        01  WK-MESSAGE-AREA5.
            03 FILLER               PIC X(020)
                                  VALUE "*** KJBM010 ABEND".
-           03 WK-ERROR-MSG         PIC X(150).
+           03 WK-ERROR-FLG         PIC XX VALUE "00".
 
        01  WK-INFILE-STATUS        PIC XX.
        01  WK-OUTFILE-STATUS       PIC XX.
@@ -80,7 +79,7 @@
       ******************************************************************
        INIT-RTN                    SECTION.
            
-           DISPLAY WK-MESSAGE-AREA UPON CONSOLE.
+           DISPLAY WK-MESSAGE-AREA
       * 作業領域の初期化
            MOVE SPACE              TO ITF-END-FLG.
            MOVE ZERO               TO WK-IN-CNT
@@ -88,21 +87,16 @@
       * ファイルのオープン                                
            OPEN INPUT ITF-FILE
            IF WK-INFILE-STATUS NOT = "00"
-                DISPLAY "ITF-FILE OPEN FAIL" 
-                   UPON CONSOLE
-                DISPLAY WK-INFILE-STATUS
-                   UPON CONSOLE
-                STOP RUN
-           END-IF
+                DISPLAY "ITF-FILEオープンに失敗しました"
+                MOVE WK-INFILE-STATUS TO WK-ERROR-FLG
+                PERFORM TERM-RTN
+           END-IF.
            OPEN OUTPUT OTF-FILE
            IF WK-OUTFILE-STATUS NOT = "00"
-                DISPLAY "OTF-FILE OPEN FAIL"
-                   UPON CONSOLE
-                DISPLAY WK-OUTFILE-STATUS
-                   UPON CONSOLE
-                CLOSE ITF-FILE
-                STOP RUN
-           END-IF
+                DISPLAY "OTF-FILEオープンに失敗しました"
+                MOVE WK-OUTFILE-STATUS TO WK-ERROR-FLG
+                PERFORM TERM-RTN
+           END-IF.
       * 入力データ読み込み
            PERFORM ITFFILE-READ-RTN.
        EXT.
@@ -114,36 +108,22 @@
        TERM-RTN                    SECTION.
 
       * ファイルのクローズ
-           CLOSE ITF-FILE.
-           IF WK-INFILE-STATUS NOT = "00"
-                DISPLAY "ITF-FAIL CLOSE FAIL"
-                       UPON CONSOLE
-                DISPLAY WK-INFILE-STATUS
-                   UPON CONSOLE
-                CLOSE OTF-FILE
-                STOP RUN
-       
-           END-IF
-           CLOSE OTF-FILE.
-           IF WK-OUTFILE-STATUS NOT = "00"
-                DISPLAY "OTF-FAIL CLOSE FAIL"
-                   UPON CONSOLE
-                DISPLAY WK-OUTFILE-STATUS
-                   UPON CONSOLE
-                CLOSE ITF-FILE
-                STOP RUN
-           END-IF
-       
-      *      入出力件数の表示
-             MOVE WK-IN-CNT          TO WK-MSG2-CNT.
-             MOVE WK-OUT-CNT         TO WK-MSG3-CNT.
+              CLOSE ITF-FILE.
+              CLOSE OTF-FILE.
 
-             DISPLAY WK-MESSAGE-AREA2 UPON CONSOLE.
-             DISPLAY WK-MESSAGE-AREA3 UPON CONSOLE.
-             DISPLAY WK-MESSAGE-AREA4 UPON CONSOLE.
+           IF WK-ERROR-FLG = "00" THEN
+      *    入出力件数の表示
+              MOVE WK-IN-CNT          TO WK-MSG2-CNT
+              MOVE WK-OUT-CNT         TO WK-MSG3-CNT
+
+              DISPLAY WK-MESSAGE-AREA2
+              DISPLAY WK-MESSAGE-AREA3
+              DISPLAY WK-MESSAGE-AREA4
+           ELSE
+              DISPLAY WK-MESSAGE-AREA5
+           END-IF.
        EXT.
            EXIT.
-
       ******************************************************************
       * 主処理
       ******************************************************************
@@ -165,9 +145,6 @@
            MOVE JF010-JUCHU-NO-X   TO JF020-JUCHU-NO-X.
            MOVE 0                  TO JF020-JUCHU-Y1.
            MOVE JF010-JUCHU-DATE   TO JF020-JUCHU-DATE6.
-      *     MOVE JF010-JUCHU-YY     TO JF020-JUCHU-Y2.
-      *     MOVE JF010-JUCHU-MM     TO JF020-JUCHU-MM.
-      *     MOVE JF010-JUCHU-DD     TO JF020-JUCHU-DD.
            MOVE JF010-TOKU-COD     TO JF020-TOKU-COD.
            MOVE JF010-SHOHIN-NO    TO JF020-SHOHIN-NO.
            MOVE JF010-SURYO-X      TO JF020-SURYO-X.
@@ -180,14 +157,10 @@
       * 出力ファイルへ書き込む
            WRITE OTF-REC.
            IF WK-OUTFILE-STATUS NOT = "00"
-                DISPLAY "OTF-FILE WRITE FAIL"
-                   UPON CONSOLE
-                DISPLAY WK-OUTFILE-STATUS
-                   UPON CONSOLE
-                CLOSE ITF-FILE
-                CLOSE OTF-FILE
-                STOP RUN
-           END-IF
+                DISPLAY "OTF-FILE書き込みに失敗しました"
+                MOVE WK-OUTFILE-STATUS TO WK-ERROR-FLG
+                PERFORM TERM-RTN
+           END-IF.
       * 書き込み件数カウント
            ADD 1                   TO WK-OUT-CNT.
        EXT.
@@ -201,13 +174,6 @@
            READ ITF-FILE AT END MOVE "Y" TO ITF-END-FLG
            NOT AT END ADD 1                TO WK-IN-CNT
            END-READ.
-           IF WK-INFILE-STATUS NOT = "00"
-              AND WK-INFILE-STATUS NOT = "10"
-                DISPLAY "ITF-FILE READ FAIL"
-                   UPON CONSOLE
-                DISPLAY WK-INFILE-STATUS
-                   UPON CONSOLE
-                CLOSE ITF-FILE OTF-FILE
-                STOP RUN
-           END-IF
+
+       EXT.
            EXIT.
