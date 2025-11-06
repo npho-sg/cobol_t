@@ -36,34 +36,34 @@
        WORKING-STORAGE             SECTION.
 
        01  WK-WORK-AREA.
-           03 ITF-END-FLG         PIC X(001).
-           03 WK-IN-CNT           PIC 9(006).
-           03 WK-OUT-CNT          PIC 9(006).
-       01  WK-MSG-ADD             PIC X(150).
-       01  WK-LF                  PIC X
-                                  VALUE X'0A'.
+           03 ITF-END-FLG          PIC X(001).
+           03 WK-IN-CNT            PIC 9(006).
+           03 WK-OUT-CNT           PIC 9(006).
+       01  WK-MSG-ADD              PIC X(150).
+       01  WK-LF                   PIC X
+                                     VALUE X'0A'.
        01  WK-MESSAGE-AREA.
-           03 FILLER              PIC X(021)
-                                VALUE "*** KJBM010 START ***".
+           03 FILLER               PIC X(021)
+                                     VALUE "*** KJBM010 START ***".
        
        01  WK-MESSAGE-AREA2.
            03 FILLER               PIC X(021)
-                                 VALUE "KJBM010 ITF=".
-           03 WK-MSG2-CNT             PIC ZZZ,ZZ9.
+                                     VALUE "KJBM010 ITF=".
+           03 WK-MSG2-CNT          PIC ZZZ,ZZ9.
 
        01  WK-MESSAGE-AREA3.
-           03 FILLER                  PIC X(021)
-                                 VALUE "KJBM010 OTF=".
-           03 WK-MSG3-CNT             PIC ZZZ,ZZ9.
+           03 FILLER               PIC X(021)
+                                     VALUE "KJBM010 OTF=".
+           03 WK-MSG3-CNT          PIC ZZZ,ZZ9.
 
        01  WK-MESSAGE-AREA4.
            03 FILLER               PIC X(020)
-                                 VALUE "*** KJBM010 END ***".
+                                     VALUE "*** KJBM010 END ***".
 
        01  WK-MESSAGE-AREA5.
            03 FILLER               PIC X(020)
-                                 VALUE "*** KJBM010 ABEND".
-           03 WK-ERROR-FLG         PIC XX VALUE "00".
+                                     VALUE "*** KJBM010 ABEND".
+           03 WK-ERROR-FLG         PIC XX VALUE ZERO.
 
        01  WK-INFILE-STATUS        PIC XX.
        01  WK-OUTFILE-STATUS       PIC XX.
@@ -79,19 +79,19 @@
       ******************************************************************
        INIT-RTN                    SECTION.
            
-           DISPLAY WK-MESSAGE-AREA
+           DISPLAY WK-MESSAGE-AREA.
       * 作業領域の初期化
            MOVE SPACE              TO ITF-END-FLG.
            MOVE ZERO               TO WK-IN-CNT
                                       WK-OUT-CNT.
       * ファイルのオープン                                
-           OPEN INPUT ITF-FILE
+           OPEN INPUT ITF-FILE.
            IF WK-INFILE-STATUS NOT = "00"
                 DISPLAY "ITF-FILEオープンに失敗しました"
                 MOVE WK-INFILE-STATUS TO WK-ERROR-FLG
                 PERFORM TERM-RTN
            END-IF.
-           OPEN OUTPUT OTF-FILE
+           OPEN OUTPUT OTF-FILE.
            IF WK-OUTFILE-STATUS NOT = "00"
                 DISPLAY "OTF-FILEオープンに失敗しました"
                 MOVE WK-OUTFILE-STATUS TO WK-ERROR-FLG
@@ -113,14 +113,14 @@
 
            IF WK-ERROR-FLG = "00" THEN
       *    入出力件数の表示
-              MOVE WK-IN-CNT          TO WK-MSG2-CNT
-              MOVE WK-OUT-CNT         TO WK-MSG3-CNT
+                MOVE WK-IN-CNT          TO WK-MSG2-CNT
+                MOVE WK-OUT-CNT         TO WK-MSG3-CNT
 
-              DISPLAY WK-MESSAGE-AREA2
-              DISPLAY WK-MESSAGE-AREA3
-              DISPLAY WK-MESSAGE-AREA4
+                DISPLAY WK-MESSAGE-AREA2
+                DISPLAY WK-MESSAGE-AREA3
+                DISPLAY WK-MESSAGE-AREA4
            ELSE
-              DISPLAY WK-MESSAGE-AREA5
+                DISPLAY WK-MESSAGE-AREA5
            END-IF.
        EXT.
            EXIT.
@@ -137,13 +137,13 @@
       ******************************************************************
       * 出力ファイルの編集・書き込み処理
       ******************************************************************
-       OUTFILE-WRITE-RTN          SECTION.
+       OUTFILE-WRITE-RTN           SECTION.
            
            MOVE SPACE              TO OTF-REC.
 
            MOVE JF010-DATA-KBN     TO JF020-DATA-KBN.
            MOVE JF010-JUCHU-NO-X   TO JF020-JUCHU-NO-X.
-           MOVE 0                  TO JF020-JUCHU-Y1.
+           MOVE ZERO               TO JF020-JUCHU-Y1.
            MOVE JF010-JUCHU-DATE   TO JF020-JUCHU-DATE6.
            MOVE JF010-TOKU-COD     TO JF020-TOKU-COD.
            MOVE JF010-SHOHIN-NO    TO JF020-SHOHIN-NO.
@@ -151,8 +151,8 @@
            MOVE SPACE              TO JF020-ERR-KBN-TBL.
            MOVE SPACE              TO JF020-TOKU-MEI.
            MOVE SPACE              TO JF020-SHOHIN-MEI.
-           MOVE 0                  TO JF020-TANKA.
-           MOVE 0                  TO JF020-KINGAKU.
+           MOVE ZERO               TO JF020-TANKA.
+           MOVE ZERO               TO JF020-KINGAKU.
 
       * 出力ファイルへ書き込む
            WRITE OTF-REC.
@@ -171,8 +171,9 @@
       ******************************************************************
        ITFFILE-READ-RTN            SECTION.
 
-           READ ITF-FILE AT END MOVE "Y" TO ITF-END-FLG
-           NOT AT END ADD 1                TO WK-IN-CNT
+           READ ITF-FILE
+             AT END MOVE "Y"       TO ITF-END-FLG
+             NOT AT END ADD 1      TO WK-IN-CNT
            END-READ.
 
        EXT.
