@@ -90,19 +90,14 @@
       * ファイルのオープン                                
            OPEN INPUT ITF-FILE
            IF WK-INFILE-STATUS NOT = "00"
-              MOVE "Y" TO WK-ERROR-FLG
-              MOVE "ITFファイルオープンに失敗しました"
-                       TO WK-ERROR-MSG
+                DISPLAY "ITFファイルオープンに失敗しました"
+                STOP RUN
            END-IF
            OPEN OUTPUT OTF-FILE
            IF WK-OUTFILE-STATUS NOT = "00"
-              MOVE "Y" TO WK-ERROR-FLG
-              STRING WK-ERROR-MSG  DELIMITED BY SIZE
-                     WK-LF         DELIMITED BY SIZE
-                     "OTFファイルオープンに失敗しました"
-                                   DELIMITED BY SIZE
-                                   INTO WK-MSG-ADD
-              MOVE WK-MSG-ADD      TO WK-ERROR-MSG
+                DISPLAY "OTFファイルオープンに失敗しました"
+                CLOSE ITF-FILE
+                STOP RUN
            END-IF
       * 入力データ読み込み
            PERFORM ITFFILE-READ-RTN.
@@ -117,23 +112,16 @@
       * ファイルのクローズ
            CLOSE ITF-FILE.
            IF WK-INFILE-STATUS NOT = "00"
-              MOVE "Y" TO WK-ERROR-FLG
-              STRING WK-ERROR-MSG  DELIMITED BY SIZE
-                     WK-LF         DELIMITED BY SIZE
-                     "ITFファイルクローズに失敗しました"
-                                   DELIMITED BY SIZE
-                                   INTO WK-MSG-ADD
-              MOVE WK-MSG-ADD      TO WK-ERROR-MSG
+                DISPLAY "ITFファイルクローズに失敗しました"
+                CLOSE OTF-FILE
+                STOP RUN
+       
            END-IF
            CLOSE OTF-FILE.
            IF WK-INFILE-STATUS NOT = "00"
-              MOVE "Y" TO WK-ERROR-FLG
-              STRING WK-ERROR-MSG  DELIMITED BY SIZE
-                     WK-LF         DELIMITED BY SIZE
-                     "OTFファイルクローズに失敗しました"
-                                   DELIMITED BY SIZE
-                                   INTO WK-MSG-ADD
-              MOVE WK-MSG-ADD      TO WK-ERROR-MSG
+                DISPLAY "OTFファイルクローズに失敗しました"
+                CLOSE ITF-FILE
+                STOP RUN
            END-IF
       * 終了ステータス判定
            IF WK-ERROR-FLG = "00" THEN
@@ -178,13 +166,10 @@
       * 出力ファイルへえ書き込む
            WRITE OTF-REC.
            IF WK-OUTFILE-STATUS NOT = "00"
-              MOVE "Y" TO WK-ERROR-FLG
-              STRING WK-ERROR-MSG  DELIMITED BY SIZE
-                     WK-LF         DELIMITED BY SIZE
-                     "OTFファイル書き込みに失敗しました"
-                                   DELIMITED BY SIZE
-                                   INTO WK-MSG-ADD
-              MOVE WK-MSG-ADD      TO WK-ERROR-MSG
+                DISPLAY "OTFファイル書き込みに失敗しました"
+                CLOSE ITF-FILE
+                CLOSE OTF-FILE
+                STOP RUN
            END-IF
       * 書き込み件数カウント
            ADD 1                   TO WK-OUT-CNT.
@@ -200,13 +185,9 @@
            NOT AT END ADD 1                TO WK-IN-CNT
            END-READ.
            IF WK-OUTFILE-STATUS NOT = "00"
-              STRING WK-ERROR-MSG  DELIMITED BY SIZE
-                     WK-LF         DELIMITED BY SIZE
-                     "OTFファイル書き込みに失敗しました"
-                                   DELIMITED BY SIZE
-                                   INTO WK-MSG-ADD
-              MOVE WK-MSG-ADD      TO WK-ERROR-MSG
-           
+                DISPLAY "OTFファイル読み込みに失敗しました"
+                CLOSE ITF-FILE
+                CLOSE OTF-FILE  
+                STOP RUN
            END-IF
-
            EXIT.
