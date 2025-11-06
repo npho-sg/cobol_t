@@ -121,6 +121,7 @@
              DISPLAY WK-MESSAGE-AREA4
            ELSE
              DISPLAY WK-MESSAGE-AREA5
+             STOP RUN
            END-IF.
        EXT.
            EXIT.
