@@ -143,17 +143,18 @@
            MOVE SPACE              TO OTF-REC.
            MOVE ITF-REC            TO OTF-REC.
 
-           MOVE JF020-JUCHU-DATE OF ITF-REC
-                                   TO S010-DATE.
-
       * データ区分チェック
-           IF JF020-DATA-KBN OF ITF-REC NOT = "1" AND
-                JF020-DATA-KBN OF ITF-REC NOT = "9" THEN
+           IF JF020-DATA-KBN OF ITF-REC = "1"
+                OR JF020-DATA-KBN OF ITF-REC = "9" THEN
+             CONTINUE
+           ELSE
              MOVE "1"              TO JF020-ERR-KBN OF OTF-REC (1)
            END-IF.
       * 受注番号チェック
-           IF JF020-JUCHU-NO OF ITF-REC IS NOT NUMERIC
-                OR JF020-JUCHU-NO OF ITF-REC = ZERO THEN
+           IF JF020-JUCHU-NO OF ITF-REC IS NUMERIC
+                AND JF020-JUCHU-NO OF ITF-REC NOT ZERO THEN
+             CONTINUE
+           ELSE
              MOVE "1"              TO JF020-ERR-KBN OF OTF-REC (2)
            END-IF.
       * 受注日付チェック
@@ -167,28 +168,28 @@
              MOVE S010-DATE        TO JF020-JUCHU-DATE OF OTF-REC
            END-IF.
       * 得意先コードチェック
-           IF JF020-TOKU-COD OF ITF-REC = SPACE THEN
+           IF JF020-TOKU-COD OF ITF-REC NOT = SPACE THEN
+             CONTINUE
+           ELSE  
              MOVE "1"              TO JF020-ERR-KBN OF OTF-REC (4)
            END-IF.
       * 商品番号チェック
-           IF JF020-SHOHIN-NO OF ITF-REC IS NOT NUMERIC
-                OR JF020-SHOHIN-NO OF ITF-REC = ZERO THEN
+           IF JF020-SHOHIN-NO OF ITF-REC IS NUMERIC
+                AND JF020-SHOHIN-NO OF ITF-REC NOT ZERO THEN
+             CONTINUE
+           ELSE
              MOVE "1"              TO JF020-ERR-KBN OF OTF-REC (5)
            END-IF.
       * 数量チェック
-           IF JF020-SURYO OF ITF-REC IS NOT NUMERIC
-                OR JF020-SURYO OF ITF-REC < 1 OR
-                  JF020-SURYO OF ITF-REC > 999 THEN
+           IF JF020-SURYO OF ITF-REC IS NUMERIC
+                AND JF020-SURYO OF ITF-REC >= 1 OR
+                  JF020-SURYO OF ITF-REC <= 999 THEN
+             CONTINUE
+           ELSE
              MOVE "1"              TO JF020-ERR-KBN OF OTF-REC (6)
            END-IF.
-
       * 出力ファイルへ書き込む
            WRITE OTF-REC.
-           IF WK-OUTFILE-STATUS NOT = "00"
-             DISPLAY "OTF-FILE書き込みに失敗しました"
-             MOVE WK-OUTFILE-STATUS TO WK-ERROR-FLG
-             PERFORM TERM-RTN
-           END-IF.
       * 書き込み件数カウント
            ADD 1                   TO WK-OUT-CNT.
        EXT.
