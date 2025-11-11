@@ -182,8 +182,8 @@
            END-IF.
       * 数量チェック
            IF JF020-SURYO OF ITF-REC IS NUMERIC
-                AND JF020-SURYO OF ITF-REC >= 1 OR
-                  JF020-SURYO OF ITF-REC <= 999 THEN
+                AND (JF020-SURYO OF ITF-REC >= 1 
+                  OR JF020-SURYO OF ITF-REC <= 999) THEN
              CONTINUE
            ELSE
              MOVE "1"              TO JF020-ERR-KBN OF OTF-REC (6)
