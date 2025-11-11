@@ -64,8 +64,8 @@
            03 FILLER               PIC X(020)
                                      VALUE "*** KJBM020 ABEND".
            03 WK-ERROR-FLG         PIC XX VALUE ZERO.
-       03  WK-INFILE-STATUS        PIC X(002).
-       03  WK-OUTFILE-STATUS       PIC X(002).
+       01  WK-INFILE-STATUS        PIC XX.
+       01  WK-OUTFILE-STATUS       PIC XX.
 
            COPY KCBS010P.
       /
