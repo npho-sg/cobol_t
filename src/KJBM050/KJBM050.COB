@@ -116,7 +116,7 @@
            END-IF.
            OPEN OUTPUT OTF2-FILE.
            IF WK-OUTFILE2-STATUS NOT = "00"
-             DISPLAY "OTF-FIEL2オープンに失敗しました"
+             DISPLAY "OTF-FILE2オープンに失敗しました"
              MOVE WK-OUTFILE2-STATUS  TO WK-ERROR-FLG
              PERFORM TERM-RTN
            END-IF.
