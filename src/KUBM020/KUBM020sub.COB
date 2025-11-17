@@ -28,7 +28,7 @@
            03  UF010-SURYO                 PIC S9(05).
            03  UF010-KINGAKU               PIC S9(09).
            03  FILLER                      PIC  X(26).
-
+           
        FD OTF-FILE.
        01  OTF-REC.
            COPY KUCF010.
