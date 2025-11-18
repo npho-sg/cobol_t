@@ -87,7 +87,9 @@
            MOVE SPACE                  TO ITF-END-FLG
                                           UF020-TOKU-COD.
            MOVE ZERO                   TO WK-IN-CNT
-                                          WK-OUT-CNT.
+                                          WK-OUT-CNT
+                                          UF020-KINGAKU.
+
       * ファイルのオープン                                
            OPEN INPUT ITF-FILE.
            IF WK-INFILE-STATUS NOT = "00"
@@ -114,10 +116,10 @@
       * 最終終了処理、プログラム終了する
 
       * 最後に残ったレコードを書き込む
-           IF UF020-TOKU-COD NOT = SPACE THEN
-             WRITE OTF-REC
-             ADD 1                       TO WK-OUT-CNT
-           END-IF.
+           
+           WRITE OTF-REC
+           ADD 1                       TO WK-OUT-CNT
+           
       * ファイルのクローズ
            CLOSE ITF-FILE.
            CLOSE OTF-FILE.
@@ -150,20 +152,7 @@
        OUTFILE-WRITE-RTN           SECTION.
 
       * 集計処理
-      *    1レコード目用の処理
-           IF UF020-TOKU-COD = SPACE THEN     
-             MOVE UF010-TOKU-COD     TO UF020-TOKU-COD
-             MOVE UF010-JUCHU-YY     TO UF020-JUCHU-YY
-             MOVE UF010-JUCHU-MM     TO UF020-JUCHU-MM
-             MOVE ZERO               TO UF020-KINGAKU
-           END-IF.
 
-           PERFORM KEY-CHECK-RTN.
-
-       EXT.
-           EXIT.
-
-       KEY-CHECK-RTN               SECTION.
       *    得意先コードと受注年月チェック
            IF UF010-TOKU-COD = UF020-TOKU-COD
                 AND (UF010-JUCHU-YY = UF020-JUCHU-YY
@@ -171,24 +160,37 @@
       *      1なら加算9なら減算
              IF UF010-DATA-KBN = "1" THEN
                ADD UF010-KINGAKU TO UF020-KINGAKU
+
              ELSE
                SUBTRACT UF010-KINGAKU FROM UF020-KINGAKU
+
              END-IF
 
       *    得意先コードと受注年月が違えば
            ELSE
+             IF UF020-TOKU-COD NOT = SPACE
+               AND (UF010-TOKU-COD NOT = UF020-TOKU-COD
+                 OR UF010-JUCHU-YY NOT = UF020-JUCHU-YY
+                   OR UF010-JUCHU-MM NOT = UF020-JUCHU-MM) THEN
       *      前のキーの書き込み
-             WRITE OTF-REC
+               WRITE OTF-REC
       *      書き込み件数カウント
-             ADD 1                  TO WK-OUT-CNT
+               ADD 1                  TO WK-OUT-CNT
+
+             END-IF
       *      新しいキーをセット
              MOVE UF010-TOKU-COD    TO UF020-TOKU-COD
              MOVE UF010-JUCHU-YY    TO UF020-JUCHU-YY
              MOVE UF010-JUCHU-MM    TO UF020-JUCHU-MM
       *      新レコードの計算の為にゼロにする
              MOVE ZERO              TO UF020-KINGAKU
-      *      新しいレコードの加算か減算の判定処理として自身を呼び出す
-             PERFORM KEY-CHECK-RTN
+      *      1なら加算9なら減算
+             IF UF010-DATA-KBN = "1" THEN
+               ADD UF010-KINGAKU TO UF020-KINGAKU
+             ELSE
+               SUBTRACT UF010-KINGAKU FROM UF020-KINGAKU
+             END-IF
+             
            END-IF.
 
        EXT.
