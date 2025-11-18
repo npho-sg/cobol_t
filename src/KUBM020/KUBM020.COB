@@ -39,7 +39,6 @@
            03 ITF-END-FLG              PIC X(001).
            03 WK-IN-CNT                PIC 9(006).
            03 WK-OUT-CNT               PIC 9(006).
-
            03 WK-TOKU-FLG              PIC X(004).
            03 WK-DATE-FLG              PIC 9(006).
 
@@ -48,7 +47,7 @@
        01  WK-MESSAGE-AREA.
            03 FILLER                   PIC X(021)
                                          VALUE "*** KUBM020 START ***".
-       
+
        01  WK-MESSAGE-AREA2.
            03 FILLER                   PIC X(021)
                                          VALUE "KUBM020 ITF=".
@@ -67,9 +66,10 @@
            03 FILLER                   PIC X(020)
                                          VALUE "*** KUBM020 ABEND".
            03 WK-ERROR-FLG             PIC XX VALUE ZERO.
-       01  WK-INFILE-STATUS            PIC XX.
-       01  WK-OUTFILE-STATUS           PIC XX.
 
+       01  WK-INFILE-STATUS            PIC XX.
+
+       01  WK-OUTFILE-STATUS           PIC XX.
       /
 
        PROCEDURE                       DIVISION.
@@ -115,8 +115,7 @@
        TERM-RTN                        SECTION.
       * 最終終了処理、プログラム終了する
 
-      * 最後に残ったレコードを書き込む
-           
+      * 最後に残ったレコードを書き込む     
            WRITE OTF-REC
            ADD 1                       TO WK-OUT-CNT
            
@@ -125,10 +124,9 @@
            CLOSE OTF-FILE.
 
            IF WK-ERROR-FLG = "00"      THEN
-      *      入出力件数の表示
+      *    入出力件数の表示
              MOVE WK-IN-CNT            TO WK-MSG2-CNT
              MOVE WK-OUT-CNT           TO WK-MSG3-CNT
-
              DISPLAY WK-MESSAGE-AREA2
              DISPLAY WK-MESSAGE-AREA3
              DISPLAY WK-MESSAGE-AREA4
@@ -139,7 +137,7 @@
       ******************************************************************
       * 主処理
       ******************************************************************
-       MAIN-RTN                    SECTION.
+       MAIN-RTN                        SECTION.
 
            PERFORM OUTFILE-WRITE-RTN.
       * 入力データ読み込み
@@ -149,7 +147,7 @@
       ******************************************************************
       * 出力ファイルの編集・書き込み処理
       ******************************************************************
-       OUTFILE-WRITE-RTN           SECTION.
+       OUTFILE-WRITE-RTN               SECTION.
 
       * 集計処理
 
@@ -162,34 +160,33 @@
            ELSE
              IF UF020-TOKU-COD NOT = SPACE THEN
       *      前のキーの書き込み
-             WRITE OTF-REC
+               WRITE OTF-REC
       *      書き込み件数カウント
-             ADD 1                  TO WK-OUT-CNT
+               ADD 1                   TO WK-OUT-CNT
              END-IF
       *      新しいキーをセット
-             MOVE UF010-TOKU-COD    TO UF020-TOKU-COD
-             MOVE UF010-JUCHU-YY    TO UF020-JUCHU-YY
-             MOVE UF010-JUCHU-MM    TO UF020-JUCHU-MM
+             MOVE UF010-TOKU-COD       TO UF020-TOKU-COD
+             MOVE UF010-JUCHU-YY       TO UF020-JUCHU-YY
+             MOVE UF010-JUCHU-MM       TO UF020-JUCHU-MM
       *      新レコードの計算の為にゼロにする
-             MOVE ZERO              TO UF020-KINGAKU
-      *      1なら加算9なら減算
+             MOVE ZERO                 TO UF020-KINGAKU
            END-IF.
-             IF UF010-DATA-KBN = "1" THEN
-               ADD UF010-KINGAKU TO UF020-KINGAKU
-             ELSE
-               SUBTRACT UF010-KINGAKU FROM UF020-KINGAKU
-             END-IF.
+      *    1なら加算9なら減算
+           IF UF010-DATA-KBN = "1" THEN
+             ADD UF010-KINGAKU         TO UF020-KINGAKU
+           ELSE
+             SUBTRACT UF010-KINGAKU    FROM UF020-KINGAKU
+           END-IF.
        EXT.
            EXIT.
       ******************************************************************
       * ファイル読み込み処理
       ******************************************************************
-       ITFFILE-READ-RTN            SECTION.
+       ITFFILE-READ-RTN                SECTION.
 
            READ ITF-FILE
-           AT END MOVE "Y"         TO ITF-END-FLG
-           NOT AT END ADD 1        TO WK-IN-CNT
+           AT END MOVE "Y"             TO ITF-END-FLG
+           NOT AT END ADD 1            TO WK-IN-CNT
            END-READ.
-
        EXT.
            EXIT.
