@@ -157,26 +157,14 @@
            IF UF010-TOKU-COD = UF020-TOKU-COD
                 AND (UF010-JUCHU-YY = UF020-JUCHU-YY
                   AND UF010-JUCHU-MM = UF020-JUCHU-MM) THEN
-      *      1なら加算9なら減算
-             IF UF010-DATA-KBN = "1" THEN
-               ADD UF010-KINGAKU TO UF020-KINGAKU
-
-             ELSE
-               SUBTRACT UF010-KINGAKU FROM UF020-KINGAKU
-
-             END-IF
-
+             CONTINUE
       *    得意先コードと受注年月が違えば
            ELSE
-             IF UF020-TOKU-COD NOT = SPACE
-               AND (UF010-TOKU-COD NOT = UF020-TOKU-COD
-                 OR UF010-JUCHU-YY NOT = UF020-JUCHU-YY
-                   OR UF010-JUCHU-MM NOT = UF020-JUCHU-MM) THEN
+             IF UF020-TOKU-COD NOT = SPACE THEN
       *      前のキーの書き込み
-               WRITE OTF-REC
+             WRITE OTF-REC
       *      書き込み件数カウント
-               ADD 1                  TO WK-OUT-CNT
-
+             ADD 1                  TO WK-OUT-CNT
              END-IF
       *      新しいキーをセット
              MOVE UF010-TOKU-COD    TO UF020-TOKU-COD
@@ -185,14 +173,12 @@
       *      新レコードの計算の為にゼロにする
              MOVE ZERO              TO UF020-KINGAKU
       *      1なら加算9なら減算
+           END-IF.
              IF UF010-DATA-KBN = "1" THEN
                ADD UF010-KINGAKU TO UF020-KINGAKU
              ELSE
                SUBTRACT UF010-KINGAKU FROM UF020-KINGAKU
-             END-IF
-             
-           END-IF.
-
+             END-IF.
        EXT.
            EXIT.
       ******************************************************************
