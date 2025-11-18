@@ -115,10 +115,11 @@
        TERM-RTN                        SECTION.
       * 最終終了処理、プログラム終了する
 
-      * 最後に残ったレコードを書き込む     
-           WRITE OTF-REC
-           ADD 1                       TO WK-OUT-CNT
-           
+      * 最後に残ったレコードを書き込む
+           IF UF020-TOKU-COD NOT = SPACE
+             WRITE OTF-REC
+             ADD 1                       TO WK-OUT-CNT
+           END-IF.
       * ファイルのクローズ
            CLOSE ITF-FILE.
            CLOSE OTF-FILE.
