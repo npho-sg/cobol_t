@@ -1,5 +1,5 @@
-       IDENTIFICATION      DIVISION.
-       PROGRAM-ID.         SUMMARY.
+       IDENTIFICATION          DIVISION.
+       PROGRAM-ID.             SUMMARY.
       ******************************************************************
       * システム名    ：研修
       * サブシステム名：
@@ -9,29 +9,29 @@
       *       変更内容：
       ******************************************************************
       *
-       ENVIRONMENT         DIVISION.
-       INPUT-OUTPUT        SECTION.
+       ENVIRONMENT             DIVISION.
+       INPUT-OUTPUT            SECTION.
        FILE-CONTROL.
        
-       DATA                DIVISION.
-       FILE                SECTION.
+       DATA                    DIVISION.
+       FILE                    SECTION.
 
-       WORKING-STORAGE     SECTION.
-       01  INSERT-CNT      PIC  9(9) PACKED-DECIMAL VALUE 0.
-       01  FETCH-CNT       PIC  9(9) PACKED-DECIMAL VALUE 0.
-       01  FETCH-END       PIC  X VALUE 'N'.
+       WORKING-STORAGE         SECTION.
+       01  INSERT-CNT          PIC  9(9) PACKED-DECIMAL VALUE 0.
+       01  FETCH-CNT           PIC  9(9) PACKED-DECIMAL VALUE 0.
+       01  FETCH-END           PIC  X VALUE 'N'.
       ******************************************************************
       *  データベースアクセス関連
       *     ※ COBOL ⇔ DB する変数は DECLARE SECTION で行う。
       ******************************************************************
        EXEC SQL  BEGIN DECLARE SECTION  END-EXEC.
       * DB接続用文字列 
-       01  DSN             PIC  X(256).
+       01  DSN                 PIC  X(256).
       * キー識別用
-       01  TOKU-COD-2  PIC  X(04).
-       01  JUCHU-YY-2  PIC  9(02).
-       01  JUCHU-MM-2  PIC  9(02).
-       01  KINGAKU-2   PIC S9(09) PACKED-DECIMAL.
+       01  TOKU-COD-2          PIC  X(04).
+       01  JUCHU-YY-2          PIC  9(02).
+       01  JUCHU-MM-2          PIC  9(02).
+       01  KINGAKU-2           PIC S9(09) PACKED-DECIMAL.
 
       *EXEC SQL INCLUDE USERS-DECLARE END-EXEC.
       * FETCHした情報を格納するデータ項目の定義
@@ -56,7 +56,7 @@
       ******************************************************************
        PROCEDURE               DIVISION.
            PERFORM INIT-RTN.
-           PERFORM MAIN-RTN  UNTIL FETCH-END = "Y".
+           PERFORM MAIN-RTN    UNTIL FETCH-END = "Y".
            PERFORM SUCCESSFUL-TERM-RTN.
            STOP RUN.
 
@@ -67,10 +67,9 @@
       * プログラムの初期化
            DISPLAY  "*** SUMMARY START ***".
            PERFORM DBCONNECT-RTN.
+           PERFORM INSERT-TEBLE-DLETE-RTN.
+           PERFORM CURSOR-OPEN-RTN.
            PERFORM FETCH-RTN.
-       EXEC SQL
-           DELETE FROM T_TOKU_SUMMARY
-       END-EXEC.
        EXT.
            EXIT.
          
@@ -93,8 +92,22 @@
            IF SQLCODE NOT = ZERO
              PERFORM DBERR-TERM-RTN
            END-IF.
+       EXT.
+           EXIT.
 
-      *    SQLカーソルを開く
+      ******************************************************************
+      * T_TOKU_SUMMARYテーブルを空にする
+      ******************************************************************
+       INSERT-TEBLE-DLETE-RTN  SECTION.
+      * データ挿入前にテーブルを空にする
+           EXEC SQL  DELETE FROM T_TOKU_SUMMARY  END-EXEC.
+       EXT.
+           EXIT.
+      ******************************************************************
+      * SQLカーソルを開く
+      ******************************************************************
+       CURSOR-OPEN-RTN         SECTION.
+      * カーソルオープン
            EXEC SQL  OPEN JUCHU-CURSOR  END-EXEC.
        EXT.
            EXIT.
@@ -129,11 +142,10 @@
        EXT.
            EXIT.
        
-      
       ******************************************************************
       * キーの識別処理
       ******************************************************************
-       MAIN-RTN       SECTION.
+       MAIN-RTN                SECTION.
 
       * 集計処理
       *    得意先コードと受注年月チェック
@@ -148,17 +160,17 @@
                PERFORM INSERT-RTN
              END-IF
       *      新しいキーをセット
-               MOVE TOKU-COD             TO TOKU-COD-2
-               MOVE JUCHU-YY             TO JUCHU-YY-2
-               MOVE JUCHU-MM             TO JUCHU-MM-2
+               MOVE TOKU-COD   TO TOKU-COD-2
+               MOVE JUCHU-YY   TO JUCHU-YY-2
+               MOVE JUCHU-MM   TO JUCHU-MM-2
       *      新レコードの計算の為にゼロにする
-               MOVE ZERO                 TO KINGAKU-2
+               MOVE ZERO       TO KINGAKU-2
            END-IF.
       *    1なら加算9なら減算
            IF DATA-KBN = "1" THEN
-             ADD KINGAKU               TO KINGAKU-2
+             ADD KINGAKU       TO KINGAKU-2
            ELSE
-             SUBTRACT KINGAKU          FROM KINGAKU-2
+             SUBTRACT KINGAKU  FROM KINGAKU-2
            END-IF.
 
            PERFORM FETCH-RTN.
