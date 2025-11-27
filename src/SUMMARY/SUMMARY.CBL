@@ -17,7 +17,7 @@
        FILE                SECTION.
 
        WORKING-STORAGE     SECTION.
-       01  INSERT-CNT         PIC  9(9) PACKED-DECIMAL VALUE 0.
+       01  INSERT-CNT      PIC  9(9) PACKED-DECIMAL VALUE 0.
        01  FETCH-CNT       PIC  9(9) PACKED-DECIMAL VALUE 0.
        01  FETCH-END       PIC  X VALUE 'N'.
       ******************************************************************
@@ -26,13 +26,12 @@
       ******************************************************************
        EXEC SQL  BEGIN DECLARE SECTION  END-EXEC.
       * DB接続用文字列 
-       01  DSN          PIC  X(256).
+       01  DSN             PIC  X(256).
       * キー識別用
-       01  TOKU-COD-2   PIC X(04).
-       01  JUCHU-YY-2   PIC 9(02).
-       01  JUCHU-MM-2   PIC 9(02).
-       01  KINGAKU-2    PIC S9(09) PACKED-DECIMAL.
-
+       01  TOKU-COD-2  PIC  X(04).
+       01  JUCHU-YY-2  PIC  9(02).
+       01  JUCHU-MM-2  PIC  9(02).
+       01  KINGAKU-2   PIC S9(09) PACKED-DECIMAL.
 
       *EXEC SQL INCLUDE USERS-DECLARE END-EXEC.
       * FETCHした情報を格納するデータ項目の定義
@@ -43,6 +42,7 @@
            JUCHU-CURSOR CURSOR FOR
                SELECT DATA_KBN, JUCHU_YY, JUCHU_MM, TOKU_COD, KINGAKU
                FROM T_JUCHU
+               ORDER BY TOKU_COD ASC, JUCHU_YY ASC, JUCHU_MM
        END-EXEC.
 
        EXEC SQL  END DECLARE SECTION  END-EXEC.
@@ -66,9 +66,11 @@
        INIT-RTN                SECTION.
       * プログラムの初期化
            DISPLAY  "*** SUMMARY START ***".
-
            PERFORM DBCONNECT-RTN.
            PERFORM FETCH-RTN.
+       EXEC SQL
+           DELETE FROM T_TOKU_SUMMARY
+       END-EXEC.
        EXT.
            EXIT.
          
@@ -146,11 +148,11 @@
                PERFORM INSERT-RTN
              END-IF
       *      新しいキーをセット
-             MOVE TOKU-COD             TO TOKU-COD-2
-             MOVE JUCHU-YY             TO JUCHU-YY-2
-             MOVE JUCHU-MM             TO JUCHU-MM-2
+               MOVE TOKU-COD             TO TOKU-COD-2
+               MOVE JUCHU-YY             TO JUCHU-YY-2
+               MOVE JUCHU-MM             TO JUCHU-MM-2
       *      新レコードの計算の為にゼロにする
-             MOVE ZERO                 TO KINGAKU-2
+               MOVE ZERO                 TO KINGAKU-2
            END-IF.
       *    1なら加算9なら減算
            IF DATA-KBN = "1" THEN
@@ -167,6 +169,7 @@
       * T_TOKU_SUMMARYテーブルにINSERT
       ******************************************************************
        INSERT-RTN              SECTION.
+           
            EXEC SQL
              INSERT INTO T_TOKU_SUMMARY
                          (TOKU_COD, JUCHU_YY, JUCHU_MM, KINGAKU)
@@ -187,9 +190,11 @@
       * 問題なく処理が完了した時の終了処理
       ******************************************************************
        SUCCESSFUL-TERM-RTN     SECTION.
-      *     EXEC SQL COMMIT END-EXEC.
-           PERFORM INSERT-RTN.
+           IF TOKU-COD-2 NOT = SPACE THEN
+             PERFORM INSERT-RTN
+           END-IF.
            PERFORM TERM-RTN.
+           EXEC SQL COMMIT END-EXEC.
        EXT.
            EXIT.
 
@@ -197,10 +202,11 @@
       * 処理宙にエラーが発生した時の終了処理
       ******************************************************************
        DBERR-TERM-RTN          SECTION.
-      *     EXEC SQL ROLLBACK END-EXEC.
+           EXEC SQL ROLLBACK END-EXEC.
            DISPLAY "SUMMARY ABEND : DATABSE ACCESS ERRROR"
            DISPLAY "SQLCODE = " SQLCODE.
            DISPLAY "SQLERRMC = " SQLERRMC.
+           DISPLAY "ロールバックが発生した為レコードが追加されません"
            PERFORM TERM-RTN.
        EXT.
            EXIT.
