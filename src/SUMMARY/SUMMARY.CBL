@@ -28,10 +28,10 @@
       * DB接続用文字列 
        01  DSN                 PIC  X(256).
       * キー識別用
-       01  TOKU-COD-2          PIC  X(04).
-       01  JUCHU-YY-2          PIC  9(02).
-       01  JUCHU-MM-2          PIC  9(02).
-       01  KINGAKU-2           PIC S9(09) PACKED-DECIMAL.
+       01  INSERT-TOKU-COD     PIC  X(04).
+       01  INSERT-JUCHU-YY     PIC  9(02).
+       01  INSERT-JUCHU-MM     PIC  9(02).
+       01  INSERT-KINGAKU      PIC S9(09) PACKED-DECIMAL.
 
       *EXEC SQL INCLUDE USERS-DECLARE END-EXEC.
       * FETCHした情報を格納するデータ項目の定義
@@ -67,7 +67,7 @@
       * プログラムの初期化
            DISPLAY  "*** SUMMARY START ***".
            PERFORM DBCONNECT-RTN.
-           PERFORM INSERT-TEBLE-DLETE-RTN.
+           PERFORM INSERT-TABLE-DELETE-RTN.
            PERFORM CURSOR-OPEN-RTN.
            PERFORM FETCH-RTN.
        EXT.
@@ -98,7 +98,7 @@
       ******************************************************************
       * T_TOKU_SUMMARYテーブルを空にする
       ******************************************************************
-       INSERT-TEBLE-DLETE-RTN  SECTION.
+       INSERT-TABLE-DELETE-RTN  SECTION.
       * データ挿入前にテーブルを空にする
            EXEC SQL  DELETE FROM T_TOKU_SUMMARY  END-EXEC.
        EXT.
@@ -149,28 +149,28 @@
 
       * 集計処理
       *    得意先コードと受注年月チェック
-           IF TOKU-COD = TOKU-COD-2
-                AND (JUCHU-YY = JUCHU-YY-2
-                  AND JUCHU-MM = JUCHU-MM-2) THEN
+           IF TOKU-COD = INSERT-TOKU-COD
+                AND (JUCHU-YY = INSERT-JUCHU-YY
+                  AND JUCHU-MM = INSERT-JUCHU-MM) THEN
              CONTINUE
       *    得意先コードと受注年月が違えば
            ELSE
-             IF TOKU-COD-2 NOT = SPACE THEN
+             IF INSERT-TOKU-COD NOT = SPACE THEN
       *      前のキーのINSERT
                PERFORM INSERT-RTN
              END-IF
       *      新しいキーをセット
-               MOVE TOKU-COD   TO TOKU-COD-2
-               MOVE JUCHU-YY   TO JUCHU-YY-2
-               MOVE JUCHU-MM   TO JUCHU-MM-2
+               MOVE TOKU-COD   TO INSERT-TOKU-COD
+               MOVE JUCHU-YY   TO INSERT-JUCHU-YY
+               MOVE JUCHU-MM   TO INSERT-JUCHU-MM
       *      新レコードの計算の為にゼロにする
-               MOVE ZERO       TO KINGAKU-2
+               MOVE ZERO       TO INSERT-KINGAKU
            END-IF.
       *    1なら加算9なら減算
            IF DATA-KBN = "1" THEN
-             ADD KINGAKU       TO KINGAKU-2
+             ADD KINGAKU       TO INSERT-KINGAKU
            ELSE
-             SUBTRACT KINGAKU  FROM KINGAKU-2
+             SUBTRACT KINGAKU  FROM INSERT-KINGAKU
            END-IF.
 
            PERFORM FETCH-RTN.
@@ -185,7 +185,9 @@
            EXEC SQL
              INSERT INTO T_TOKU_SUMMARY
                          (TOKU_COD, JUCHU_YY, JUCHU_MM, KINGAKU)
-             VALUES (:TOKU-COD-2, :JUCHU-YY-2, :JUCHU-MM-2, :KINGAKU-2)
+             VALUES
+                   (:INSERT-TOKU-COD, :INSERT-JUCHU-YY,
+                   :INSERT-JUCHU-MM, :INSERT-KINGAKU)
            END-EXEC.
 
            EVALUATE SQLCODE
@@ -202,7 +204,7 @@
       * 問題なく処理が完了した時の終了処理
       ******************************************************************
        SUCCESSFUL-TERM-RTN     SECTION.
-           IF TOKU-COD-2 NOT = SPACE THEN
+           IF INSERT-TOKU-COD NOT = SPACE THEN
              PERFORM INSERT-RTN
            END-IF.
            PERFORM TERM-RTN.
